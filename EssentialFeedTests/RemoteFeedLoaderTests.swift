@@ -5,26 +5,9 @@
 //  Created by Himanshu on 28/07/25.
 //
 
-import Testing
 import Foundation
-
-class RemoteFeedLoader {
-    let url: URL
-    let client: HTTPClient
-    
-    init(url: URL, client: HTTPClient) {
-        self.client = client
-        self.url = url
-    }
-    
-    func load() {
-        client.get(from: url)
-    }
-}
-
-protocol HTTPClient {
-    func get(from url: URL)
-}
+import Testing
+import EssentialFeed
 
 struct RemoteFeedLoaderTests {
 
