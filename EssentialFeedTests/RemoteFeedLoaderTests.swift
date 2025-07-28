@@ -64,6 +64,18 @@ struct RemoteFeedLoaderTests {
         }
     }
     
+    @Test
+    func test_load_deliversErrorOn200HTTPResponseWithInvalidJSON() {
+        let (sut, client) = makeSUT()
+        var capturedErrors = [RemoteFeedLoader.Error]()
+        
+        sut.load { capturedErrors.append($0) }
+        let invalidJSON = Data("invalid JSON".utf8)
+        client.complete(with: 200, data: invalidJSON)
+        
+        #expect(capturedErrors == [.invalidData])
+    }
+    
     //MARK: Helper
     private  func makeSUT(url: URL = URL(string: "https:/a-url.com")!) -> (sut: RemoteFeedLoader, client: HttpClientSpy) {
         let client = HttpClientSpy()
@@ -84,9 +96,9 @@ struct RemoteFeedLoaderTests {
             messages[index].completion(.failure(error))
         }
         
-        func complete(with statusCode: Int = 200, at index: Int = 0) {
+        func complete(with statusCode: Int = 200, data: Data = Data(), at index: Int = 0) {
             let response = HTTPURLResponse(url: requestedURLs[index], statusCode: statusCode, httpVersion: nil, headerFields: nil)!
-            messages[index].completion(.success(response))
+            messages[index].completion(.success(data, response))
         }
     }
 }
