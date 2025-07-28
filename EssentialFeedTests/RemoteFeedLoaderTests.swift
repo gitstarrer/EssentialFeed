@@ -14,7 +14,7 @@ struct RemoteFeedLoaderTests {
     @Test("test init")
     func test_init() async throws {
         let (_, client) =  makeSUT()
-        #expect(client.requestedURL == nil)
+        #expect(client.requestedURLs == [])
     }
 
     @Test
@@ -23,7 +23,7 @@ struct RemoteFeedLoaderTests {
         let (sut, client) = makeSUT(url: url)
         
         sut.load()
-        #expect(client.requestedURL == url)
+        #expect(client.requestedURLs == [url])
     }
     
     @Test
@@ -34,7 +34,6 @@ struct RemoteFeedLoaderTests {
         sut.load()
         sut.load()
         
-        #expect(client.requestedURL == url)
         #expect(client.requestedURLs == [url, url])
     }
     
@@ -45,10 +44,9 @@ struct RemoteFeedLoaderTests {
     }
     
     private class HttpClientSpy: HTTPClient {
-        var requestedURL: URL?
         var requestedURLs = [URL]()
+        
         func get(from url: URL) {
-            requestedURL = url
             requestedURLs.append(url)
         }
         
