@@ -9,13 +9,16 @@ import Testing
 import Foundation
 
 class RemoteFeedLoader {
+    let url: URL
     let client: HTTPClient
-    init(client: HTTPClient) {
+    
+    init(url: URL, client: HTTPClient) {
         self.client = client
+        self.url = url
     }
     
     func load() {
-        client.get(from: URL(string: "https:/a-url.com")!)
+        client.get(from: url)
     }
 }
 
@@ -36,17 +39,19 @@ struct RemoteFeedLoaderTests {
 
     @Test("test init")
     func test_init() async throws {
+        let url = URL(string: "https:/a-url.com")!
         let client = HttpClientSpy()
-        _ = RemoteFeedLoader(client: client)
+        _ = RemoteFeedLoader(url: url, client: client)
         #expect(client.requestedURL == nil)
     }
 
     @Test
     func test_load_requestDataFromURL() {
+        let url = URL(string: "https:/a-url.com")!
         let client = HttpClientSpy()
-        let sut = RemoteFeedLoader(client: client)
+        let sut = RemoteFeedLoader(url: url, client: client)
         
         sut.load()
-        #expect(client.requestedURL != nil)
+        #expect(client.requestedURL == url)
     }
 }
