@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct FeedItem: Equatable {
+public struct FeedItem: Equatable, Decodable {
     let id: String
     let description: String?
     let location: String?
