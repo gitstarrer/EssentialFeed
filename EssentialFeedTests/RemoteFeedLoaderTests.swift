@@ -74,10 +74,13 @@ struct RemoteFeedLoaderTests {
     }
     
     private func expect(_ sut: RemoteFeedLoader, toCompleteWith error: RemoteFeedLoader.Error, action: () -> Void, sourceLocation: SourceLocation = #_sourceLocation) {
-        var capturedErrors = [RemoteFeedLoader.Error]()
+        
+        var capturedErrors = [RemoteFeedLoader.Result]()
         sut.load { capturedErrors.append($0) }
+        
         action()
-        #expect(capturedErrors == [error], sourceLocation: sourceLocation)
+        
+        #expect(capturedErrors == [.failure(error)], sourceLocation: sourceLocation)
     }
     
     private class HttpClientSpy: HTTPClient {
