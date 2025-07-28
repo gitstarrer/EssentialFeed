@@ -53,13 +53,15 @@ struct RemoteFeedLoaderTests {
     @Test
     func test_load_deliversErrorOnNon200Response() async throws {
         let (sut, client) = makeSUT()
-        var capturedError = [RemoteFeedLoader.Error]()
         
-        sut.load { capturedError.append($0) }
-        let clientError = NSError(domain: "test", code: 0)
-        client.complete(with: 200)
-        
-        #expect(capturedError == [.invalidData])
+        [199, 201, 300, 400, 501].enumerated().forEach { index, code in
+            var capturedErrors = [RemoteFeedLoader.Error]()
+            
+            sut.load { capturedErrors.append($0) }
+            client.complete(with: code, at: index)
+            
+            #expect(capturedErrors == [.invalidData])
+        }
     }
     
     //MARK: Helper
