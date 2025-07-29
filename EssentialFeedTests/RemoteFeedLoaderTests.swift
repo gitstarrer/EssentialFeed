@@ -41,7 +41,7 @@ struct RemoteFeedLoaderTests {
     @Test
     func test_load_deliversErrorOnClientError() async throws {
         let (sut, client) = makeSUT()
-        expect(sut, toCompleteWith: .connectivity) {
+        expect(sut, toCompleteWith: .failure(.connectivity)) {
             let clientError = NSError(domain: "test", code: 0)
             client.complete(with: clientError)
         }
@@ -52,7 +52,7 @@ struct RemoteFeedLoaderTests {
         let (sut, client) = makeSUT()
         let samples = [199, 201, 300, 400, 501]
         samples.enumerated().forEach { index, code in
-            expect(sut, toCompleteWith: .invalidData) {
+            expect(sut, toCompleteWith: .failure(.invalidData)) {
                 client.complete(with: code, at: index)
             }
         }
@@ -61,7 +61,7 @@ struct RemoteFeedLoaderTests {
     @Test
     func test_load_deliversErrorOn200HTTPResponseWithInvalidJSON() {
         let (sut, client) = makeSUT()
-        expect(sut, toCompleteWith: .invalidData) {
+        expect(sut, toCompleteWith: .failure(.invalidData)) {
             let invalidJSON = Data("invalid JSON".utf8)
             client.complete(with: 200, data:  invalidJSON)
         }
@@ -70,14 +70,10 @@ struct RemoteFeedLoaderTests {
     @Test
     func test_load_deliversNoItemsOnEmptyListJSON() {
         let (sut, client) = makeSUT()
-        
-        var capturedResults = [RemoteFeedLoader.Result]()
-        sut.load { capturedResults.append($0) }
-        
-        let emptyJSON = Data("{\"items\": []}".utf8)
-        client.complete(with: 200, data: emptyJSON)
-        
-        #expect(capturedResults == [.success([])])
+        expect(sut, toCompleteWith: .success([])) {
+            let emptyJSON = Data("{\"items\": []}".utf8)
+            client.complete(with: 200, data: emptyJSON)
+        }
     }
     
     //MARK: Helper
@@ -86,14 +82,14 @@ struct RemoteFeedLoaderTests {
         return (sut: RemoteFeedLoader(url: url, client: client), client: client)
     }
     
-    private func expect(_ sut: RemoteFeedLoader, toCompleteWith error: RemoteFeedLoader.Error, action: () -> Void, sourceLocation: SourceLocation = #_sourceLocation) {
+    private func expect(_ sut: RemoteFeedLoader, toCompleteWith result: RemoteFeedLoader.Result, action: () -> Void, sourceLocation: SourceLocation = #_sourceLocation) {
         
         var capturedErrors = [RemoteFeedLoader.Result]()
         sut.load { capturedErrors.append($0) }
         
         action()
         
-        #expect(capturedErrors == [.failure(error)], sourceLocation: sourceLocation)
+        #expect(capturedErrors == [result], sourceLocation: sourceLocation)
     }
     
     private class HttpClientSpy: HTTPClient {
