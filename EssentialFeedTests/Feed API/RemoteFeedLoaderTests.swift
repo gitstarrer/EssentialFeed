@@ -141,14 +141,28 @@ final class RemoteFeedLoaderTests: XCTestCase {
         return try! JSONSerialization.data(withJSONObject: json)
     }
     
-    private func expect(_ sut: RemoteFeedLoader, toCompleteWith result: RemoteFeedLoader.Result, action: () -> Void, file: StaticString = #filePath, line: UInt = #line) {
+    private func expect(_ sut: RemoteFeedLoader, toCompleteWith expectedResult: RemoteFeedLoader.Result, action: () -> Void, file: StaticString = #filePath, line: UInt = #line) {
         
-        var capturedResults = [RemoteFeedLoader.Result]()
-        sut.load { capturedResults.append($0) }
+        let exp = expectation(description: "wait for load completion")
+        
+        sut.load { capturedResult in
+            switch (capturedResult, expectedResult) {
+                case (.success(let capturedItems), .success(let expectedItems)):
+                XCTAssertEqual(capturedItems, expectedItems)
+                
+            case (.failure(let capturedError), .failure(let expectedError)):
+                XCTAssertEqual(capturedError, expectedError)
+                
+            default:
+                XCTFail("Expected result: \(expectedResult) but instead got \(capturedResult)", file: file, line: line)
+            }
+            
+            exp.fulfill()
+        }
         
         action()
         
-        XCTAssertEqual(capturedResults, [result], file: file, line: line)
+        wait(for: [exp], timeout: 1.0)
     }
     
     private class HttpClientSpy: HTTPClient {
