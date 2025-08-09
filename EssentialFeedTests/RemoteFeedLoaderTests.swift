@@ -1,56 +1,53 @@
 //
 //  RemoteFeedLoaderTests.swift
-//  EssentialFeedTests
+//  EssentialFeed
 //
-//  Created by Himanshu on 28/07/25.
+//  Created by Himanshu on 09/08/25.
 //
 
-import Foundation
-import Testing
+
+import XCTest
 import EssentialFeed
 
-struct RemoteFeedLoaderTests {
-
-    @Test("test init")
-    func test_init() async throws {
-        let (_, client) =  makeSUT()
-        #expect(client.requestedURLs == [])
+final class RemoteFeedLoaderTests: XCTestCase {
+    
+    func test_init_doesNotRequestDataFromURL() {
+        let (_, client) = makeSUT()
+        XCTAssertTrue(client.requestedURLs.isEmpty)
     }
-
-    @Test
+    
     func test_load_requestsDataFromURL() {
-        let url = URL(string: "https:/a-url.com")!
+        let url = URL(string: "https://a-url.com")!
         let (sut, client) = makeSUT(url: url)
         
         sut.load { _ in }
         
-        #expect(client.requestedURLs == [url])
+        XCTAssertEqual(client.requestedURLs, [url])
     }
     
-    @Test
     func test_loadTwice_requestsDataFromURLTwice() {
-        let url = URL(string: "https:/a-url.com")!
+        let url = URL(string: "https://a-url.com")!
         let (sut, client) = makeSUT(url: url)
         
         sut.load { _ in }
         sut.load { _ in }
         
-        #expect(client.requestedURLs == [url, url])
+        XCTAssertEqual(client.requestedURLs, [url, url])
     }
     
-    @Test
-    func test_load_deliversErrorOnClientError() async throws {
+    func test_load_deliversErrorOnClientError() {
         let (sut, client) = makeSUT()
+        
         expect(sut, toCompleteWith: .failure(.connectivity)) {
             let clientError = NSError(domain: "test", code: 0)
             client.complete(with: clientError)
         }
     }
     
-    @Test
-    func test_load_deliversErrorOnNon200Response() async throws {
+    func test_load_deliversErrorOnNon200Response() {
         let (sut, client) = makeSUT()
         let samples = [199, 201, 300, 400, 501]
+        
         samples.enumerated().forEach { index, code in
             expect(sut, toCompleteWith: .failure(.invalidData)) {
                 let json = makeItemsJSON([])
@@ -59,42 +56,56 @@ struct RemoteFeedLoaderTests {
         }
     }
     
-    @Test
     func test_load_deliversErrorOn200HTTPResponseWithInvalidJSON() {
         let (sut, client) = makeSUT()
+        
         expect(sut, toCompleteWith: .failure(.invalidData)) {
             let invalidJSON = Data("invalid JSON".utf8)
-            client.complete(withStatusCode: 200, data:  invalidJSON)
+            client.complete(withStatusCode: 200, data: invalidJSON)
         }
     }
-
-    @Test
+    
     func test_load_deliversNoItemsOn200HTTPResponseWithEmptyListJSON() {
         let (sut, client) = makeSUT()
+        
         expect(sut, toCompleteWith: .success([])) {
             let emptyJSON = makeItemsJSON([])
             client.complete(withStatusCode: 200, data: emptyJSON)
         }
     }
     
-    @Test
     func test_load_deliversItemsOn200HTTPResponseWithJSONItems() {
         let (sut, client) = makeSUT()
         
         let item1 = makeItem(id: UUID(), imageURL: URL(string: "https://a-url.com")!)
-        let item2 = makeItem(id: UUID(), description: "a description",
-                             location: "a location", imageURL: URL(string: "https://another-url.com")!)
+        let item2 = makeItem(
+            id: UUID(),
+            description: "a description",
+            location: "a location",
+            imageURL: URL(string: "https://another-url.com")!
+        )
         
-        expect(sut, toCompleteWith: .success([item1.item, item2.item]), action: {
+        expect(sut, toCompleteWith: .success([item1.item, item2.item])) {
             let jsonData = makeItemsJSON([item1.itemJSON, item2.itemJSON])
             client.complete(withStatusCode: 200, data: jsonData)
-        })
+        }
     }
     
     //MARK: Helper
-    private func makeSUT(url: URL = URL(string: "https:/a-url.com")!) -> (sut: RemoteFeedLoader, client: HttpClientSpy) {
+    private func makeSUT(url: URL = URL(string: "https:/a-url.com")!, file: StaticString = #filePath, line: UInt = #line) -> (sut: RemoteFeedLoader, client: HttpClientSpy) {
         let client = HttpClientSpy()
-        return (sut: RemoteFeedLoader(url: url, client: client), client: client)
+        let sut = RemoteFeedLoader(url: url, client: client)
+        
+        trackForMemoryLeaks(instance: sut, file: file, line: line)
+        trackForMemoryLeaks(instance: client, file: file, line: line)
+        
+        return (sut: sut, client: client)
+    }
+    
+    private func trackForMemoryLeaks(instance: AnyObject, file: StaticString = #filePath, line: UInt = #line) {
+        addTeardownBlock { [weak instance] in
+            XCTAssertNil(instance, "Instance should have been deallocated. Possible memory leak.",file: file, line: line)
+        }
     }
     
     private func makeItem(id: UUID, description: String? = nil, location: String? = nil, imageURL: URL) -> (item: FeedItem, itemJSON: [String: Any]) {
@@ -116,14 +127,14 @@ struct RemoteFeedLoaderTests {
         return try! JSONSerialization.data(withJSONObject: json)
     }
     
-    private func expect(_ sut: RemoteFeedLoader, toCompleteWith result: RemoteFeedLoader.Result, action: () -> Void, sourceLocation: SourceLocation = #_sourceLocation) {
+    private func expect(_ sut: RemoteFeedLoader, toCompleteWith result: RemoteFeedLoader.Result, action: () -> Void, file: StaticString = #filePath, line: UInt = #line) {
         
         var capturedResults = [RemoteFeedLoader.Result]()
         sut.load { capturedResults.append($0) }
         
         action()
         
-        #expect(capturedResults == [result], sourceLocation: sourceLocation)
+        XCTAssertEqual(capturedResults, [result], file: file, line: line)
     }
     
     private class HttpClientSpy: HTTPClient {
