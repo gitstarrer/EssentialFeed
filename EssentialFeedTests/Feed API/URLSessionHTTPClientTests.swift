@@ -25,17 +25,17 @@ class URLSessionHTTPClient {
 }
 
 final class URLSessionHTTPClientTests: XCTestCase {
-//  We don't need this test because we aren't mocking anymore? Why?
-//
-//    func test_getFromURL_resumesDataTaskWithURL() {
-//        let url = URL(string: "https://a-url.com")!
-//        session.stub(url: url)
-//        let sut = URLSessionHTTPClient(session: session)
-//        
-//        sut.get(from: url) { _ in }
-//        
-//        XCTAssertEqual(task.resumeCallCount, 1)
-//    }
+    //  We don't need this test because we aren't mocking anymore? Why?
+    //
+    //    func test_getFromURL_resumesDataTaskWithURL() {
+    //        let url = URL(string: "https://a-url.com")!
+    //        session.stub(url: url)
+    //        let sut = URLSessionHTTPClient(session: session)
+    //
+    //        sut.get(from: url) { _ in }
+    //
+    //        XCTAssertEqual(task.resumeCallCount, 1)
+    //    }
     
     func test_getFromURL_failsOnRequestError() {
         //start stubbing requests
@@ -43,7 +43,7 @@ final class URLSessionHTTPClientTests: XCTestCase {
         
         let url = URL(string: "https://a-url.com")!
         let error = NSError(domain: "any error", code: 1)
-        URLProtocolStub.stub(url: url, error: error)
+        URLProtocolStub.stub(data: nil, response: nil, error: error)
         let sut = URLSessionHTTPClient()
         
         let exp = expectation(description: "wait for completion block")
@@ -64,17 +64,19 @@ final class URLSessionHTTPClientTests: XCTestCase {
         //stop stubbing requests because we don't wanna stub other tests
         URLProtocolStub.stopInterceptingRequests()
     }
-
+    
     //MARK: Helpers
     private class URLProtocolStub: URLProtocol {
-        private static var stubs = [URL: Stub]()
+        private static var stub: Stub?
         
         private struct Stub {
+            let data: Data?
+            let response: URLResponse?
             let error: Error?
         }
         
-        static func stub(url: URL, error: Error? = nil) {
-            stubs[url] = Stub(error: error)
+        static func stub(data: Data?, response: URLResponse?, error: Error?) {
+            stub = Stub(data: data, response: response, error: error)
         }
         
         static func startInterceptingRequests() {
@@ -86,8 +88,7 @@ final class URLSessionHTTPClientTests: XCTestCase {
         }
         
         override class func canInit(with request: URLRequest) -> Bool {
-            guard let url = request.url else { return false }
-            return stubs[url] != nil
+            true
         }
         
         override class func canonicalRequest(for request: URLRequest) -> URLRequest {
@@ -95,9 +96,15 @@ final class URLSessionHTTPClientTests: XCTestCase {
         }
         
         override func startLoading() {
-            guard let url = request.url, let stub = URLProtocolStub.stubs[url] else { return }
+            if let data = URLProtocolStub.stub?.data {
+                client?.urlProtocol(self, didLoad: data)
+            }
             
-            if let error = stub.error {
+            if let response = URLProtocolStub.stub?.response {
+                client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            }
+            
+            if let error = URLProtocolStub.stub?.error {
                 client?.urlProtocol(self, didFailWithError: error)
             }
             
