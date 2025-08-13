@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F10FD94E2E4C790500D0E06C /* RemoteFeedLoaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10FD94A2E4C790500D0E06C /* RemoteFeedLoaderTests.swift */; };
+		F10FD94F2E4C790500D0E06C /* URLSessionHTTPClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10FD94B2E4C790500D0E06C /* URLSessionHTTPClientTests.swift */; };
 		F15855432E4797FE00B2CD84 /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F15855422E4797FE00B2CD84 /* HTTPClient.swift */; };
 		F15855452E47987200B2CD84 /* FeedItemsMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F15855442E47987200B2CD84 /* FeedItemsMapper.swift */; };
 		F189847F2E3752320093B281 /* EssentialFeed.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F18984752E3752310093B281 /* EssentialFeed.framework */; };
@@ -26,6 +28,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F10FD94A2E4C790500D0E06C /* RemoteFeedLoaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFeedLoaderTests.swift; sourceTree = "<group>"; };
+		F10FD94B2E4C790500D0E06C /* URLSessionHTTPClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionHTTPClientTests.swift; sourceTree = "<group>"; };
 		F15855422E4797FE00B2CD84 /* HTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPClient.swift; sourceTree = "<group>"; };
 		F15855442E47987200B2CD84 /* FeedItemsMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedItemsMapper.swift; sourceTree = "<group>"; };
 		F18984752E3752310093B281 /* EssentialFeed.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = EssentialFeed.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -34,14 +38,6 @@
 		F18984992E3764630093B281 /* FeedLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedLoader.swift; sourceTree = "<group>"; };
 		F18984A12E3764920093B281 /* RemoteFeedLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFeedLoader.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		F18984822E3752320093B281 /* EssentialFeedTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = EssentialFeedTests;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		F18984722E3752310093B281 /* Frameworks */ = {
@@ -62,11 +58,28 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		F10FD94C2E4C790500D0E06C /* Feed API */ = {
+			isa = PBXGroup;
+			children = (
+				F10FD94A2E4C790500D0E06C /* RemoteFeedLoaderTests.swift */,
+				F10FD94B2E4C790500D0E06C /* URLSessionHTTPClientTests.swift */,
+			);
+			path = "Feed API";
+			sourceTree = "<group>";
+		};
+		F10FD94D2E4C790500D0E06C /* EssentialFeedTests */ = {
+			isa = PBXGroup;
+			children = (
+				F10FD94C2E4C790500D0E06C /* Feed API */,
+			);
+			path = EssentialFeedTests;
+			sourceTree = "<group>";
+		};
 		F189846B2E3752310093B281 = {
 			isa = PBXGroup;
 			children = (
 				F189849C2E3764630093B281 /* EssentialFeed */,
-				F18984822E3752320093B281 /* EssentialFeedTests */,
+				F10FD94D2E4C790500D0E06C /* EssentialFeedTests */,
 				F18984762E3752310093B281 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -154,9 +167,6 @@
 			dependencies = (
 				F18984812E3752320093B281 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				F18984822E3752320093B281 /* EssentialFeedTests */,
-			);
 			name = EssentialFeedTests;
 			packageProductDependencies = (
 			);
@@ -236,6 +246,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F10FD94E2E4C790500D0E06C /* RemoteFeedLoaderTests.swift in Sources */,
+				F10FD94F2E4C790500D0E06C /* URLSessionHTTPClientTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
