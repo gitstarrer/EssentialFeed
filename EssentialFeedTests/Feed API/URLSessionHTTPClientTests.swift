@@ -8,7 +8,7 @@
 import XCTest
 import EssentialFeed
 
-class URLSessionHTTPClient {
+class URLSessionHTTPClient: HTTPClient {
     private let session: URLSession
     
     init(session: URLSession = .shared) {
@@ -21,7 +21,7 @@ class URLSessionHTTPClient {
         session.dataTask(with: url) { data, response, error in
             if let error = error {
                 completion(.failure(error))
-            } else if let data, data.count > 0, let response = response as? HTTPURLResponse {
+            } else if let data, let response = response as? HTTPURLResponse {
                 completion(.success(data, response))
             } else {
                 completion(.failure(UnexpectedValuesRepresentation()))
@@ -82,7 +82,6 @@ final class URLSessionHTTPClientTests: XCTestCase {
     func test_getFromURL_failsForAllInvalidCases() {
         XCTAssertNotNil(resultErrorFor(data: nil, response: nil, error: nil))
         XCTAssertNotNil(resultErrorFor(data: nil, response: nonHTTPURLResponse(), error: nil))
-        XCTAssertNotNil(resultErrorFor(data: nil, response: anyHTTPURLResponse(), error: nil))
         XCTAssertNotNil(resultErrorFor(data: anyData(), response: nil, error: nil))
         XCTAssertNotNil(resultErrorFor(data: anyData(), response: nil, error: anyNSError()))
         XCTAssertNotNil(resultErrorFor(data: nil, response: nonHTTPURLResponse(), error: anyNSError()))
@@ -92,7 +91,7 @@ final class URLSessionHTTPClientTests: XCTestCase {
         XCTAssertNotNil(resultErrorFor(data: anyData(), response: nonHTTPURLResponse(), error: nil))
     }
     
-    func test_getFromURL_succeedsWithHTTPURLResponseAndValidData() {
+    func test_getFromURL_succeedsWithHTTPURLResponseWithData() {
         let data = anyData()
         let response = anyHTTPURLResponse()
         
@@ -103,9 +102,19 @@ final class URLSessionHTTPClientTests: XCTestCase {
         XCTAssertEqual(receivedValue?.response.statusCode, response.statusCode)
     }
     
+    func test_getFromURL_succeedsWithEmptyDataHTTPURLResponseWithNilData() {
+        let response = anyHTTPURLResponse()
+        
+        let receivedValue = resultValuesFor(data: nil, response: response, error: nil)
+        
+        XCTAssertEqual(receivedValue?.data, Data())
+        XCTAssertEqual(receivedValue?.response.url, response.url)
+        XCTAssertEqual(receivedValue?.response.statusCode, response.statusCode)
+    }
+    
     //MARK: Helpers
     
-    private func makeSUT(file: StaticString = #filePath, line: UInt = #line) -> URLSessionHTTPClient {
+    private func makeSUT(file: StaticString = #filePath, line: UInt = #line) -> HTTPClient {
         let instance = URLSessionHTTPClient()
         trackForMemoryLeaks(instance: instance, file: file, line: line)
         return instance
