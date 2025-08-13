@@ -25,6 +25,17 @@ class URLSessionHTTPClient {
 }
 
 final class URLSessionHTTPClientTests: XCTestCase {
+    override class func setUp() {
+        super.setUp()
+        URLProtocolStub.startInterceptingRequests()
+    }
+    
+    override class func tearDown() {
+        super.tearDown()
+        //stop stubbing requests because we don't wanna stub other tests
+        URLProtocolStub.stopInterceptingRequests()
+    }
+    
     //  We don't need this test because we aren't mocking anymore? Why?
     //
     //    func test_getFromURL_resumesDataTaskWithURL() {
@@ -38,7 +49,6 @@ final class URLSessionHTTPClientTests: XCTestCase {
     //    }
     
     func test_getFromURL_performsGETRequestWithURL() {
-        URLProtocolStub.startInterceptingRequests()
         let url = URL(string: "https://a-url.com")!
         let exp = expectation(description: "wait for completion block")
         URLProtocolStub.observeRequests{ request in
@@ -49,13 +59,9 @@ final class URLSessionHTTPClientTests: XCTestCase {
         URLSessionHTTPClient().get(from: url) { _ in }
         
         wait(for: [exp], timeout: 1.0)
-        URLProtocolStub.stopInterceptingRequests()
     }
     
     func test_getFromURL_failsOnRequestError() {
-        //start stubbing requests
-        URLProtocolStub.startInterceptingRequests()
-        
         let url = URL(string: "https://a-url.com")!
         let error = NSError(domain: "any error", code: 1)
         URLProtocolStub.stub(data: nil, response: nil, error: error)
@@ -76,9 +82,6 @@ final class URLSessionHTTPClientTests: XCTestCase {
         }
         
         wait(for: [exp], timeout: 1.0)
-        
-        //stop stubbing requests because we don't wanna stub other tests
-        URLProtocolStub.stopInterceptingRequests()
     }
     
     //MARK: Helpers
